@@ -7,12 +7,20 @@
 
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
+    checkstyle
     application
+    // id("io.freefair.lombok") version "8.6"
 }
 
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
+}
+
+checkstyle {
+    configFile = rootProject.file("./config/checkstyle.xml")
+    isIgnoreFailures = false
+    sourceSets = setOf(project.sourceSets.getByName("main")) // Ensure only the main source set is checked, excluding tests
 }
 
 dependencies {
@@ -35,6 +43,12 @@ java {
 application {
     // Define the main class for the application.
     mainClass = "org.example.App"
+}
+
+tasks.jar {
+    manifest {
+        attributes("Main-Class" to "org.example.App")
+    }
 }
 
 tasks.named<Test>("test") {

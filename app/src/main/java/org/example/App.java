@@ -4,11 +4,19 @@
 package org.example;
 
 public class App {
+    /**
+     * greetings.
+     * @return hello world
+     */
     public String getGreeting() {
         return "Hello World!";
     }
 
-    public static void main(String[] args) {
+    /**
+     * main class of the application.
+     * @param args args.
+     */
+    public static void main(final String[] args) {
         System.out.println(new App().getGreeting());
     }
 }
