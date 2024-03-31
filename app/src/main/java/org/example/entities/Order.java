@@ -2,19 +2,24 @@ package org.example.entities;
 
 import java.time.LocalDate;
 
-public record Order(String id, LocalDate orderDate, LocalDate shipDate) {
-    public enum ShipMode {
-        /**
-         * standart.
-         */
-        STANDART_CLASS,
-        /**
-         * first.
-         */
-        FIRST_CLASS,
-        /**
-         * second.
-         */
-        SECOND_CLASS
-    }
+import com.opencsv.bean.CsvBindByName;
+import com.opencsv.bean.CsvDate;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+public class Order {
+    @CsvBindByName(column = "Order ID")
+    private String id;
+    @CsvBindByName(column = "Order Date")
+    @CsvDate("d.M.yyyy")
+    private LocalDate orderDate;
+    @CsvBindByName(column = "Ship Date")
+    @CsvDate("d.M.yyyy")
+    private LocalDate shipDate;
+    @CsvBindByName(column = "Ship Mode")
+    private String shipMode;
+
 }

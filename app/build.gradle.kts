@@ -7,9 +7,10 @@
 
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
-    checkstyle
     application
-    // id("io.freefair.lombok") version "8.6"
+    checkstyle
+    id("io.freefair.lombok") version "8.6"
+    id("org.openjfx.javafxplugin") version "0.1.0"
 }
 
 repositories {
@@ -31,6 +32,7 @@ dependencies {
 
     // This dependency is used by the application.
     implementation(libs.guava)
+    implementation("com.opencsv:opencsv:5.9")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -38,6 +40,10 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
+}
+
+javafx {
+    modules("javafx.controls")
 }
 
 application {

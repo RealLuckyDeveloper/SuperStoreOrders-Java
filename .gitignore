@@ -28,3 +28,6 @@ replay_pid*
 
 # Ignore Gradle build output directory
 build
+
+#csv file i experimented in development, not needed in prod
+app/temp.csv

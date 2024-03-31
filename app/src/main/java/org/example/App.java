@@ -3,13 +3,21 @@
  */
 package org.example;
 
-public class App {
+import java.util.List;
+import java.io.FileReader;
+
+import com.opencsv.bean.CsvToBeanBuilder;
+
+import org.example.entities.Row;
+import org.example.ui.UI;
+
+public final class App {
+
     /**
-     * greetings.
-     * @return hello world
+     * Private constructor.
      */
-    public String getGreeting() {
-        return "Hello World!";
+    private App() {
+
     }
 
     /**
@@ -17,6 +25,23 @@ public class App {
      * @param args args.
      */
     public static void main(final String[] args) {
-        System.out.println(new App().getGreeting());
+        List<Row> beans = null;
+        try {
+            beans = new CsvToBeanBuilder<Row>(new FileReader("temp.csv"))
+                    .withSeparator(';')
+                    .withType(Row.class)
+                    .build()
+                    .parse();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (beans == null) {
+            return;
+        }
+
+        System.out.println(beans.get(1));
+
+        UI.passDataAndLaunch(beans);
     }
 }
