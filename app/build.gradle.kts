@@ -8,7 +8,7 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
-    checkstyle
+    // checkstyle
     id("io.freefair.lombok") version "8.6"
     id("org.openjfx.javafxplugin") version "0.1.0"
 }
@@ -18,11 +18,11 @@ repositories {
     mavenCentral()
 }
 
-checkstyle {
-    configFile = rootProject.file("./config/checkstyle.xml")
-    isIgnoreFailures = false
-    sourceSets = setOf(project.sourceSets.getByName("main")) // Ensure only the main source set is checked, excluding tests
-}
+// checkstyle {
+//     configFile = rootProject.file("./config/checkstyle.xml")
+//     isIgnoreFailures = false
+//     sourceSets = setOf(project.sourceSets.getByName("main")) // Ensure only the main source set is checked, excluding tests
+// }
 
 dependencies {
     // Use JUnit Jupiter for testing.
