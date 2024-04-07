@@ -44,9 +44,7 @@ public class UI extends Application {
      */
     @Override
     public void start(final Stage primaryStage) throws Exception {
-        // Text text = new Text(beans.get(0).getCustomer().toString());
         BorderPane root = new BorderPane();
-        // root.getChildren().add(text);
 
         final VBox mainVbox = new VBox();
         mainVbox.setSpacing(5);
@@ -61,6 +59,7 @@ public class UI extends Application {
         primaryStage.setY(bounds.getMinY());
         primaryStage.setWidth(bounds.getWidth());
         primaryStage.setHeight(bounds.getHeight());
+
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
     }
@@ -135,7 +134,6 @@ public class UI extends Application {
                 System.out.println("Order header clicked!");
                 if (orderCol.getColumns().size() != 1) {
                     orderCol.getColumns().setAll(orderColumns.get(0));
-                    // orderCol.getColumns().removeAll(new ArrayList<>());
                 } else {
                     orderCol.getColumns().setAll(orderColumns);
                 }
@@ -319,7 +317,6 @@ public class UI extends Application {
 
         table.getColumns().addAll(rowIdCol, orderCol, customerCol,
                 productCol, financialDataCol);
-        table.setItems(tableData);
         return table;
     }
 
