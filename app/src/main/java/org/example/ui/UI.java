@@ -1,6 +1,5 @@
 package org.example.ui;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.example.entities.Customer;
@@ -38,6 +37,7 @@ import javafx.stage.Stage;
  */
 public class UI extends Application {
     private static List<Row> beans;
+    private TableView<Row> table = buildMainTable();
 
     /**
      * {@inheritDoc}
@@ -49,7 +49,7 @@ public class UI extends Application {
         final VBox mainVbox = new VBox();
         mainVbox.setSpacing(5);
         mainVbox.setPadding(new Insets(10, 0, 0, 10));
-        mainVbox.getChildren().addAll(buildMainTable());
+        mainVbox.getChildren().addAll(table);
 
         root.setCenter(mainVbox);
         root.setTop(buildMenuBar());
@@ -123,20 +123,14 @@ public class UI extends Application {
                                 .getOrder()
                                 .getShipMode()));
 
-        final var orderColumns = List.of(orderIdCol, orderDateCol,
+        orderCol.getColumns().setAll(orderIdCol, orderDateCol,
                 orderShipDateCol, orderShipModeCol);
-
-        orderCol.getColumns().setAll(orderColumns);
 
         StackPane orderText = createHeaderContainer("Order");
         orderText.setOnMouseClicked((MouseEvent event) -> {
             if (event.getButton().equals(MouseButton.PRIMARY)) {
                 System.out.println("Order header clicked!");
-                if (orderCol.getColumns().size() != 1) {
-                    orderCol.getColumns().setAll(orderColumns.get(0));
-                } else {
-                    orderCol.getColumns().setAll(orderColumns);
-                }
+                toggleColumnExpansion(orderCol);
             }
         });
         orderCol.setGraphic(orderText);
@@ -196,21 +190,14 @@ public class UI extends Application {
                         .getCustomer()
                         .getRegion()));
 
-        final var customerColumns = List.of(customerIdCol, customerNameCol,
+        customerCol.getColumns().setAll(customerIdCol, customerNameCol,
                 segmentCol, countryCol, cityCol, stateCol,
                 postalCodeCol, regionCol);
-
-        customerCol.getColumns().setAll(customerColumns);
 
         StackPane customerText = createHeaderContainer("Customer");
         customerText.setOnMouseClicked((MouseEvent event) -> {
             if (event.getButton().equals(MouseButton.PRIMARY)) {
-                // System.out.println("Customer header clicked!");
-                if (customerCol.getColumns().size() != 1) {
-                    customerCol.getColumns().setAll(customerColumns.get(0));
-                } else {
-                    customerCol.getColumns().setAll(customerColumns);
-                }
+                toggleColumnExpansion(customerCol);
             }
         });
         customerCol.setGraphic(customerText);
@@ -244,20 +231,14 @@ public class UI extends Application {
                         .getProduct()
                         .getName()));
 
-        final var productColumns = List.of(productIdCol, categoryCol,
+        productCol.getColumns().addAll(productIdCol, categoryCol,
                 subcategoryCol, productNameCol);
-
-        productCol.getColumns().addAll(productColumns);
 
         StackPane productText = createHeaderContainer("Product");
         productText.setOnMouseClicked((MouseEvent event) -> {
             if (event.getButton().equals(MouseButton.PRIMARY)) {
                 // System.out.println("Product header clicked!");
-                if (productCol.getColumns().size() != 1) {
-                    productCol.getColumns().setAll(productCol.getColumns().get(0));
-                } else {
-                    productCol.getColumns().setAll(productColumns);
-                }
+                toggleColumnExpansion(productCol);
             }
         });
         productCol.setGraphic(productText);
@@ -295,20 +276,12 @@ public class UI extends Application {
                         .getProfit())
                 .asObject());
 
-        final var salesList = List.of(salesCol, quantityCol, discountCol, profitCol);
-        financialDataCol.getColumns().setAll(salesList);
+        financialDataCol.getColumns().setAll(salesCol, quantityCol, discountCol, profitCol);
 
         StackPane salesText = createHeaderContainer("Financial Data");
         salesText.setOnMouseClicked((MouseEvent event) -> {
             if (event.getButton().equals(MouseButton.PRIMARY)) {
-                System.out.println("Order header clicked!");
-                if (financialDataCol.getColumns().size() != 1) {
-                    financialDataCol.getColumns().removeAll(quantityCol,
-                            discountCol, profitCol);
-                } else {
-                    financialDataCol.getColumns().addAll(quantityCol,
-                            discountCol, profitCol);
-                }
+                toggleColumnExpansion(financialDataCol);
             }
         });
         financialDataCol.setGraphic(salesText);
@@ -351,21 +324,29 @@ public class UI extends Application {
         Menu expandMenuItem = new Menu("Expand");
         Menu collapseMenuItem = new Menu("Collapse");
 
-        getColumnList().stream().forEach(text -> {
-            MenuItem expandItem = new MenuItem(text);
+        table.getColumns().stream().skip(1).forEach(column -> {
+            MenuItem expandItem = new MenuItem(getColumnTitle(column));
             expandItem.setOnAction(event -> {
                 System.out.println(expandItem.getText() + " was clicked(expand)");
+                expandColumn(column);
             });
-            MenuItem collapseItem = new MenuItem(text);
+            MenuItem collapseItem = new MenuItem(getColumnTitle(column));
             collapseItem.setOnAction(event -> {
                 System.out.println(collapseItem.getText() + " was clicked(collapse)");
+                collapseColumn(column);
             });
             expandMenuItem.getItems().add(expandItem);
             collapseMenuItem.getItems().add(collapseItem);
         });
 
         MenuItem expandAllMenuItem = new MenuItem("Expand all");
+        expandAllMenuItem.setOnAction(event -> {
+            table.getColumns().stream().skip(1).forEach(UI::expandColumn);
+        });
         MenuItem collapseAllMenuItem = new MenuItem("Collapse all");
+        collapseAllMenuItem.setOnAction(event -> {
+            table.getColumns().stream().skip(1).forEach(UI::collapseColumn);
+        });
         viewMenu.getItems().addAll(expandMenuItem, collapseMenuItem, expandAllMenuItem, collapseAllMenuItem);
 
         // Add menus to the menu bar
@@ -373,18 +354,42 @@ public class UI extends Application {
         return menuBar;
     }
 
-    public List<String> getColumnList() {
-        List<String> columnList = new ArrayList<String>();
-        buildMainTable().getColumns().stream().forEach(column -> {
-            // column Row ID has no graphic, hence this if check is needed
-            // to avoid NullPointerException
-            if (column.getGraphic() != null) {
-                StackPane content = (StackPane) column.getGraphic();
-                Text columnTitle = (Text) content.getChildren().get(0);
-                columnList.add(columnTitle.getText());
-            }
+    public static String getColumnTitle(final TableColumn<Row, ?> column) {
+        // column Row ID has no graphic, hence this if check is needed
+        // to avoid NullPointerException
+        StackPane content = (StackPane) column.getGraphic();
+        Text columnTitle = (Text) content.getChildren().get(0);
+        return columnTitle.getText();
+    }
+
+    private static void expandColumn(final TableColumn<Row, ?> column) {
+        if (column.getColumns().get(1).isVisible()) {
+            return;
+        }
+        column.getColumns().stream().forEach(subColumn -> {
+            subColumn.setVisible(true);
+            // System.out.println(getColumnTitle(subColumn));
         });
-        return columnList;
+    }
+
+    private static void collapseColumn(final TableColumn<Row, ?> column) {
+        if (!column.getColumns().get(1).isVisible()) {
+            return;
+        }
+        column.getColumns().stream().skip(1).forEach(subColumn -> {
+            subColumn.setVisible(false);
+            // System.out.println(getColumnTitle(subColumn));
+        });
+    }
+
+    private static void toggleColumnExpansion(final TableColumn<Row, ?> column) {
+        // check if second sub column is visible, assuming only
+        // only first sub-column will be shown when collapsed
+        if (column.getColumns().get(1).isVisible()) {
+            collapseColumn(column);
+        } else {
+            expandColumn(column);
+        }
     }
 
 }
