@@ -1,13 +1,16 @@
 package org.example.ui;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.example.entities.Customer;
 import org.example.entities.FinancialData;
+import org.example.entities.Order;
 import org.example.entities.Product;
 import org.example.entities.Row;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -91,7 +94,7 @@ public class UI extends Application {
                         .getRowId())
                 .asObject());
         // ----------------------- order column --------------------------------
-        TableColumn<Row, Customer> orderCol = new TableColumn<>();
+        TableColumn<Row, Order> orderCol = new TableColumn<>();
 
         TableColumn<Row, String> orderIdCol = new TableColumn<>("Order ID");
         orderIdCol.setCellValueFactory(cellData -> new SimpleStringProperty(
@@ -121,19 +124,20 @@ public class UI extends Application {
                                 .getOrder()
                                 .getShipMode()));
 
-        orderCol.getColumns().addAll(orderIdCol, orderDateCol,
+        final var orderColumns = List.of(orderIdCol, orderDateCol,
                 orderShipDateCol, orderShipModeCol);
+
+        orderCol.getColumns().setAll(orderColumns);
 
         StackPane orderText = createHeaderContainer("Order");
         orderText.setOnMouseClicked((MouseEvent event) -> {
             if (event.getButton().equals(MouseButton.PRIMARY)) {
                 System.out.println("Order header clicked!");
                 if (orderCol.getColumns().size() != 1) {
-                    orderCol.getColumns().removeAll(orderDateCol,
-                            orderShipDateCol, orderShipModeCol);
+                    orderCol.getColumns().setAll(orderColumns.get(0));
+                    // orderCol.getColumns().removeAll(new ArrayList<>());
                 } else {
-                    orderCol.getColumns().addAll(orderDateCol,
-                            orderShipDateCol, orderShipModeCol);
+                    orderCol.getColumns().setAll(orderColumns);
                 }
             }
         });
@@ -194,25 +198,20 @@ public class UI extends Application {
                         .getCustomer()
                         .getRegion()));
 
-        customerCol.getColumns().addAll(customerIdCol, customerNameCol,
-                segmentCol, countryCol,
-                cityCol, stateCol,
+        final var customerColumns = List.of(customerIdCol, customerNameCol,
+                segmentCol, countryCol, cityCol, stateCol,
                 postalCodeCol, regionCol);
+
+        customerCol.getColumns().setAll(customerColumns);
 
         StackPane customerText = createHeaderContainer("Customer");
         customerText.setOnMouseClicked((MouseEvent event) -> {
             if (event.getButton().equals(MouseButton.PRIMARY)) {
-                System.out.println("Customer header clicked!");
+                // System.out.println("Customer header clicked!");
                 if (customerCol.getColumns().size() != 1) {
-                    customerCol.getColumns().removeAll(customerNameCol,
-                            segmentCol, countryCol,
-                            cityCol, stateCol,
-                            postalCodeCol, regionCol);
+                    customerCol.getColumns().setAll(customerColumns.get(0));
                 } else {
-                    customerCol.getColumns().addAll(customerNameCol,
-                            segmentCol, countryCol,
-                            cityCol, stateCol,
-                            postalCodeCol, regionCol);
+                    customerCol.getColumns().setAll(customerColumns);
                 }
             }
         });
@@ -247,19 +246,19 @@ public class UI extends Application {
                         .getProduct()
                         .getName()));
 
-        productCol.getColumns().addAll(productIdCol, categoryCol,
+        final var productColumns = List.of(productIdCol, categoryCol,
                 subcategoryCol, productNameCol);
+
+        productCol.getColumns().addAll(productColumns);
 
         StackPane productText = createHeaderContainer("Product");
         productText.setOnMouseClicked((MouseEvent event) -> {
             if (event.getButton().equals(MouseButton.PRIMARY)) {
-                System.out.println("Order header clicked!");
+                // System.out.println("Product header clicked!");
                 if (productCol.getColumns().size() != 1) {
-                    productCol.getColumns().removeAll(categoryCol,
-                            subcategoryCol, productNameCol);
+                    productCol.getColumns().setAll(productCol.getColumns().get(0));
                 } else {
-                    productCol.getColumns().addAll(categoryCol,
-                            subcategoryCol, productNameCol);
+                    productCol.getColumns().setAll(productColumns);
                 }
             }
         });
@@ -298,8 +297,8 @@ public class UI extends Application {
                         .getProfit())
                 .asObject());
 
-        financialDataCol.getColumns().addAll(salesCol, quantityCol,
-                discountCol, profitCol);
+        final var salesList = List.of(salesCol, quantityCol, discountCol, profitCol);
+        financialDataCol.getColumns().setAll(salesList);
 
         StackPane salesText = createHeaderContainer("Financial Data");
         salesText.setOnMouseClicked((MouseEvent event) -> {
@@ -334,40 +333,61 @@ public class UI extends Application {
         Text headerText = new Text(text);
         StackPane headerContainer = new StackPane(headerText);
         headerContainer.setStyle("-fx-background-color: lightgray;");
-        // headerContainer.setMinWidth(100); // Set the minimum width to ensure the
-        // header is clickable
         return headerContainer;
     }
 
     public MenuBar buildMenuBar() {
         MenuBar menuBar = new MenuBar();
 
-        // Create File menu
+        // File menu
         Menu fileMenu = new Menu("File");
-        MenuItem newMenuItem = new MenuItem("New");
-        MenuItem openMenuItem = new MenuItem("Open");
-        MenuItem saveMenuItem = new MenuItem("Save");
+        MenuItem openMenuItem = new MenuItem("Preferences");
         MenuItem exitMenuItem = new MenuItem("Exit");
-        fileMenu.getItems().addAll(newMenuItem, openMenuItem, saveMenuItem, exitMenuItem);
+        exitMenuItem.setOnAction(event -> {
+            Platform.exit();
+        });
 
-        // Create View menu
+        fileMenu.getItems().addAll(openMenuItem, exitMenuItem);
+
+        // View menu
         Menu viewMenu = new Menu("View");
-        MenuItem expandMenuItem = new MenuItem("Expand");
-        MenuItem collapseMenuItem = new MenuItem("Collapse");
+        Menu expandMenuItem = new Menu("Expand");
+        Menu collapseMenuItem = new Menu("Collapse");
+
+        getColumnList().stream().forEach(text -> {
+            MenuItem expandItem = new MenuItem(text);
+            expandItem.setOnAction(event -> {
+                System.out.println(expandItem.getText() + " was clicked(expand)");
+            });
+            MenuItem collapseItem = new MenuItem(text);
+            collapseItem.setOnAction(event -> {
+                System.out.println(collapseItem.getText() + " was clicked(collapse)");
+            });
+            expandMenuItem.getItems().add(expandItem);
+            collapseMenuItem.getItems().add(collapseItem);
+        });
+
         MenuItem expandAllMenuItem = new MenuItem("Expand all");
         MenuItem collapseAllMenuItem = new MenuItem("Collapse all");
         viewMenu.getItems().addAll(expandMenuItem, collapseMenuItem, expandAllMenuItem, collapseAllMenuItem);
 
-        // Create Edit menu
-        Menu editMenu = new Menu("Edit");
-        MenuItem cutMenuItem = new MenuItem("Cut");
-        MenuItem copyMenuItem = new MenuItem("Copy");
-        MenuItem pasteMenuItem = new MenuItem("Paste");
-        editMenu.getItems().addAll(cutMenuItem, copyMenuItem, pasteMenuItem);
-
         // Add menus to the menu bar
-        menuBar.getMenus().addAll(fileMenu, viewMenu, editMenu);
+        menuBar.getMenus().addAll(fileMenu, viewMenu);
         return menuBar;
+    }
+
+    public List<String> getColumnList() {
+        List<String> columnList = new ArrayList<String>();
+        buildMainTable().getColumns().stream().forEach(column -> {
+            // column Row ID has no graphic, hence this if check is needed
+            // to avoid NullPointerException
+            if (column.getGraphic() != null) {
+                StackPane content = (StackPane) column.getGraphic();
+                Text columnTitle = (Text) content.getChildren().get(0);
+                columnList.add(columnTitle.getText());
+            }
+        });
+        return columnList;
     }
 
 }
