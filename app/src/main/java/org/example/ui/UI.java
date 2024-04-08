@@ -81,7 +81,7 @@ public class UI extends Application {
      * @return Tableview main table
      */
     @SuppressWarnings("unchecked")
-    public TableView<Row> buildMainTable() {
+    private TableView<Row> buildMainTable() {
         final ObservableList<Row> tableData = FXCollections.observableArrayList(beans);
 
         TableView<Row> table = new TableView<Row>(tableData);
@@ -295,18 +295,22 @@ public class UI extends Application {
 
     /**
      * creates clickable stackpane, used on main columns as a graphic.
-     * 
+     *
      * @param text text inside StackPane
      * @return Stackpane with text.
      */
-    private StackPane createHeaderContainer(String text) {
+    private StackPane createHeaderContainer(final String text) {
         Text headerText = new Text(text);
         StackPane headerContainer = new StackPane(headerText);
         headerContainer.setStyle("-fx-background-color: lightgray;");
         return headerContainer;
     }
 
-    public MenuBar buildMenuBar() {
+    /**
+     * builds the menubar and returns it.
+     * @return menubar
+     */
+    private MenuBar buildMenuBar() {
         MenuBar menuBar = new MenuBar();
 
         // File menu
@@ -354,6 +358,12 @@ public class UI extends Application {
         return menuBar;
     }
 
+    /**
+     * returns the title of the column passed as an argument.
+     *
+     * @param column column to get title of
+     * @return title of the column
+     */
     public static String getColumnTitle(final TableColumn<Row, ?> column) {
         // column Row ID has no graphic, hence this if check is needed
         // to avoid NullPointerException
@@ -362,6 +372,12 @@ public class UI extends Application {
         return columnTitle.getText();
     }
 
+    /**
+     * expands the given column.
+     * expands the column if the column was collapsed, otherwise does nothing
+     *
+     * @param column column to expand
+     */
     private static void expandColumn(final TableColumn<Row, ?> column) {
         if (column.getColumns().get(1).isVisible()) {
             return;
@@ -372,6 +388,11 @@ public class UI extends Application {
         });
     }
 
+    /**
+     * collapses the column.
+     * only leaves first sub column visible and makes all others invisible
+     * @param column
+     */
     private static void collapseColumn(final TableColumn<Row, ?> column) {
         if (!column.getColumns().get(1).isVisible()) {
             return;
@@ -382,6 +403,10 @@ public class UI extends Application {
         });
     }
 
+    /**
+     * expands the column if collapsed and collapses if expanded.
+     * @param column column to toggle
+     */
     private static void toggleColumnExpansion(final TableColumn<Row, ?> column) {
         // check if second sub column is visible, assuming only
         // only first sub-column will be shown when collapsed
