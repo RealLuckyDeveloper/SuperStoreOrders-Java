@@ -21,6 +21,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.input.MouseButton;
@@ -37,7 +38,8 @@ import javafx.stage.Stage;
  */
 public class UI extends Application {
     private static List<Row> beans;
-    private TableView<Row> table = buildMainTable();
+    private static List<String> returnedOrderIDs;
+    private final TableView<Row> table = buildMainTable();
 
     /**
      * {@inheritDoc}
@@ -46,12 +48,12 @@ public class UI extends Application {
     public void start(final Stage primaryStage) throws Exception {
         BorderPane root = new BorderPane();
 
-        final VBox mainVbox = new VBox();
-        mainVbox.setSpacing(5);
-        mainVbox.setPadding(new Insets(10, 0, 0, 10));
-        mainVbox.getChildren().addAll(table);
+        // final VBox mainVbox = new VBox();
+        // mainVbox.setSpacing(5);
+        // mainVbox.setPadding(new Insets(10, 0, 0, 10));
+        // mainVbox.getChildren().addAll(table);
 
-        root.setCenter(mainVbox);
+        root.setCenter(table);
         root.setTop(buildMenuBar());
         // set window size to take all screen space
         Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
@@ -66,12 +68,14 @@ public class UI extends Application {
 
     /**
      * custom launcher.
-     * launchs UI and sets data from csv file
+     * launchs UI and sets data from csv files
      * 
-     * @param data {@code List<Row>} data parsed from csv
+     * @param data           {@code List<Row>} data parsed from csv
+     * @param returnedOrders list of returned orders
      */
-    public static void passDataAndLaunch(final List<Row> data) {
+    public static void passDataAndLaunch(final List<Row> data, final List<String> returnedOrders) {
         beans = data;
+        returnedOrderIDs = returnedOrders;
         launch();
     }
 
@@ -96,6 +100,29 @@ public class UI extends Application {
         TableColumn<Row, Order> orderCol = new TableColumn<>();
 
         TableColumn<Row, String> orderIdCol = new TableColumn<>("Order ID");
+
+        orderIdCol.setCellFactory(column -> {
+            return new TableCell<Row, String>() {
+                @Override
+                protected void updateItem(String orderId, boolean empty) {
+                    super.updateItem(orderId, empty);
+
+                    if (empty || orderId == null) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(orderId);
+
+                        if (returnedOrderIDs.contains(orderId)) {
+                            setStyle("-fx-background-color: yellow;");
+                        } else {
+                            setStyle("");
+                        }
+                    }
+                }
+            };
+        });
+
         orderIdCol.setCellValueFactory(cellData -> new SimpleStringProperty(
                 cellData.getValue()
                         .getOrder()
@@ -129,7 +156,6 @@ public class UI extends Application {
         StackPane orderText = createHeaderContainer("Order");
         orderText.setOnMouseClicked((MouseEvent event) -> {
             if (event.getButton().equals(MouseButton.PRIMARY)) {
-                System.out.println("Order header clicked!");
                 toggleColumnExpansion(orderCol);
             }
         });
@@ -270,6 +296,30 @@ public class UI extends Application {
                 .asObject());
 
         TableColumn<Row, Double> profitCol = new TableColumn<>("Profit");
+
+        profitCol.setCellFactory(column -> {
+            return new TableCell<Row, Double>() {
+                @Override
+                protected void updateItem(Double profit, boolean empty) {
+                    super.updateItem(profit, empty);
+                    if (empty || profit == null) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(profit.toString());
+                        // make background yellow if order is in returned list
+                        if (profit > 0) {
+                            setStyle("-fx-background-color: lightgreen;");
+                        } else if (profit == 0) {
+                            setStyle("-fx-background-color: lightyellow;");
+                        } else {
+                            setStyle("-fx-background-color: lightcoral;");
+                        }
+                    }
+                }
+            };
+        });
+
         profitCol.setCellValueFactory(cellData -> new SimpleDoubleProperty(
                 cellData.getValue()
                         .getData()
@@ -308,6 +358,7 @@ public class UI extends Application {
 
     /**
      * builds the menubar and returns it.
+     * 
      * @return menubar
      */
     private MenuBar buildMenuBar() {
@@ -391,6 +442,7 @@ public class UI extends Application {
     /**
      * collapses the column.
      * only leaves first sub column visible and makes all others invisible
+     * 
      * @param column
      */
     private static void collapseColumn(final TableColumn<Row, ?> column) {
@@ -405,6 +457,7 @@ public class UI extends Application {
 
     /**
      * expands the column if collapsed and collapses if expanded.
+     * 
      * @param column column to toggle
      */
     private static void toggleColumnExpansion(final TableColumn<Row, ?> column) {
