@@ -7,39 +7,51 @@ import org.example.entities.FinancialData;
 import org.example.entities.Order;
 import org.example.entities.Product;
 import org.example.entities.Row;
+import org.example.ui.util.ColumnUtils;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
+import static org.example.ui.util.ColumnUtils.*;
+
 /**
  * class representing User Interface.
  */
 public class UI extends Application {
-    private static List<Row> beans;
+    private static ObservableList<Row> beans;
+    // for search function
+    // private static ObservableList<Row> filteredList;
     private static List<String> returnedOrderIDs;
-    private final TableView<Row> table = buildMainTable();
+    private TableView<Row> table = buildMainTable();
 
     /**
      * {@inheritDoc}
@@ -48,12 +60,12 @@ public class UI extends Application {
     public void start(final Stage primaryStage) throws Exception {
         BorderPane root = new BorderPane();
 
-        // final VBox mainVbox = new VBox();
-        // mainVbox.setSpacing(5);
-        // mainVbox.setPadding(new Insets(10, 0, 0, 10));
-        // mainVbox.getChildren().addAll(table);
+        final VBox centralVbox = new VBox();
+        centralVbox.setSpacing(5);
+        centralVbox.setPadding(new Insets(10, 0, 0, 10));
+        centralVbox.getChildren().addAll(buildSearchBar(), table);
 
-        root.setCenter(table);
+        root.setCenter(centralVbox);
         root.setTop(buildMenuBar());
         // set window size to take all screen space
         Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
@@ -74,7 +86,8 @@ public class UI extends Application {
      * @param returnedOrders list of returned orders
      */
     public static void passDataAndLaunch(final List<Row> data, final List<String> returnedOrders) {
-        beans = data;
+        beans = FXCollections.observableList(data);
+        // filteredList = beans;
         returnedOrderIDs = returnedOrders;
         launch();
     }
@@ -86,10 +99,23 @@ public class UI extends Application {
      */
     @SuppressWarnings("unchecked")
     private TableView<Row> buildMainTable() {
-        final ObservableList<Row> tableData = FXCollections.observableArrayList(beans);
 
-        TableView<Row> table = new TableView<Row>(tableData);
+        TableView<Row> table = new TableView<Row>(beans);
         table.setEditable(false);
+        table.setOnMouseClicked(mouseEvent -> {
+            table.getSelectionModel().getSelectedCells().forEach(cell -> {
+                if (cell != null && cell.getTableColumn().getText().equals("Customer Name")) {
+                    System.out.println("correct column");
+                    
+                    Customer customer = table.getSelectionModel().getSelectedItem().getCustomer();
+                    try {
+                        buildOrdersMadeByCustomerWindow(customer).show();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        });
 
         TableColumn<Row, Integer> rowIdCol = new TableColumn<>("Row ID");
         rowIdCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(
@@ -340,6 +366,7 @@ public class UI extends Application {
 
         table.getColumns().addAll(rowIdCol, orderCol, customerCol,
                 productCol, financialDataCol);
+
         return table;
     }
 
@@ -396,11 +423,11 @@ public class UI extends Application {
 
         MenuItem expandAllMenuItem = new MenuItem("Expand all");
         expandAllMenuItem.setOnAction(event -> {
-            table.getColumns().stream().skip(1).forEach(UI::expandColumn);
+            table.getColumns().stream().skip(1).forEach(ColumnUtils::expandColumn);
         });
         MenuItem collapseAllMenuItem = new MenuItem("Collapse all");
         collapseAllMenuItem.setOnAction(event -> {
-            table.getColumns().stream().skip(1).forEach(UI::collapseColumn);
+            table.getColumns().stream().skip(1).forEach(ColumnUtils::collapseColumn);
         });
         viewMenu.getItems().addAll(expandMenuItem, collapseMenuItem, expandAllMenuItem, collapseAllMenuItem);
 
@@ -409,65 +436,85 @@ public class UI extends Application {
         return menuBar;
     }
 
-    /**
-     * returns the title of the column passed as an argument.
-     *
-     * @param column column to get title of
-     * @return title of the column
-     */
-    public static String getColumnTitle(final TableColumn<Row, ?> column) {
-        // column Row ID has no graphic, hence this if check is needed
-        // to avoid NullPointerException
-        StackPane content = (StackPane) column.getGraphic();
-        Text columnTitle = (Text) content.getChildren().get(0);
-        return columnTitle.getText();
-    }
+    private VBox buildSearchBar() {
+        FilteredList<Row> filteredData = new FilteredList<>(beans, p -> true); // Initially display all data
 
-    /**
-     * expands the given column.
-     * expands the column if the column was collapsed, otherwise does nothing
-     *
-     * @param column column to expand
-     */
-    private static void expandColumn(final TableColumn<Row, ?> column) {
-        if (column.getColumns().get(1).isVisible()) {
-            return;
-        }
-        column.getColumns().stream().forEach(subColumn -> {
-            subColumn.setVisible(true);
-            // System.out.println(getColumnTitle(subColumn));
+        VBox searchBarContainer = new VBox();
+        searchBarContainer.setSpacing(5);
+
+        Label searchLabel = new Label("Search Customer:");
+
+        TextField searchField = new TextField();
+        searchField.setPrefWidth(200);
+        searchField.setPromptText("Search...");
+
+        HBox searchBox = new HBox(10);
+        searchBox.getChildren().addAll(searchLabel, searchField);
+        searchBox.setAlignment(Pos.CENTER);
+
+        // HBox.setHgrow(searchField, Priority.ALWAYS);
+
+        searchBarContainer.getChildren().add(searchBox);
+
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+            filteredData.setPredicate(row -> {
+                if (newValue == null || newValue.isEmpty()) {
+                    return true; // Show all rows if filter text is empty
+                }
+
+                return row.getCustomer().getName().toLowerCase().contains(newValue.toLowerCase());
+            });
         });
+
+        SortedList<Row> sortedData = new SortedList<>(filteredData);
+
+        // Bind the SortedList comparator to the TableView comparator
+        sortedData.comparatorProperty().bind(table.comparatorProperty());
+
+        Label placeholderLabel = new Label("No results matching your query");
+        placeholderLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: gray;");
+
+        // Use a StackPane to overlay the table with the placeholder label
+        StackPane placeholderPane = new StackPane(placeholderLabel);
+        placeholderPane.setStyle("-fx-background-color: white;");
+
+        // Bind visibility of placeholderPane to the emptiness of filteredList
+        placeholderPane.visibleProperty().bind(
+                Bindings.isEmpty(filteredData));
+
+        table.setPlaceholder(placeholderPane);
+        table.setItems(sortedData);
+
+        return searchBarContainer;
     }
 
-    /**
-     * collapses the column.
-     * only leaves first sub column visible and makes all others invisible
-     * 
-     * @param column
-     */
-    private static void collapseColumn(final TableColumn<Row, ?> column) {
-        if (!column.getColumns().get(1).isVisible()) {
-            return;
-        }
-        column.getColumns().stream().skip(1).forEach(subColumn -> {
-            subColumn.setVisible(false);
-            // System.out.println(getColumnTitle(subColumn));
-        });
-    }
+    private Stage buildOrdersMadeByCustomerWindow(Customer customer) throws Exception {
+        Stage primaryStage = new Stage();
 
-    /**
-     * expands the column if collapsed and collapses if expanded.
-     * 
-     * @param column column to toggle
-     */
-    private static void toggleColumnExpansion(final TableColumn<Row, ?> column) {
-        // check if second sub column is visible, assuming only
-        // only first sub-column will be shown when collapsed
-        if (column.getColumns().get(1).isVisible()) {
-            collapseColumn(column);
-        } else {
-            expandColumn(column);
-        }
+        TableView<Row> table = buildMainTable();
+        table.getColumns().get(2).setVisible(false);
+        FilteredList<Row> tableData = new FilteredList<Row>(beans, row -> row.getCustomer().getId().equals(customer.getId()));
+        table.setItems(FXCollections.observableList(tableData));
+
+        String summaryLabel = "Summary of all orders made by customer " + customer.getName();
+
+        final VBox centralVbox = new VBox();
+        centralVbox.setSpacing(5);
+        centralVbox.setPadding(new Insets(10, 0, 0, 10));
+        centralVbox.getChildren().addAll(new Label(summaryLabel), table);
+
+        BorderPane root = new BorderPane();
+        root.setCenter(centralVbox);
+        root.setTop(buildMenuBar());
+
+        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+        primaryStage.setX(bounds.getMinX());
+        primaryStage.setY(bounds.getMinY());
+        primaryStage.setWidth(bounds.getWidth());
+        primaryStage.setHeight(bounds.getHeight());
+        primaryStage.setTitle("Summary of orders");
+        primaryStage.setScene(new Scene(root));
+        return primaryStage;
     }
 
 }
