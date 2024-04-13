@@ -66,8 +66,8 @@ public class UI extends Application {
         centralVbox.getChildren().addAll(buildSearchBar(), table);
 
         root.setCenter(centralVbox);
-        root.setTop(buildMenuBar());
-        // set window size to take all screen space
+        root.setTop(buildMenuBar(table));
+         //set Stage boundaries to visible bounds of the main screen
         Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
         primaryStage.setX(bounds.getMinX());
         primaryStage.setY(bounds.getMinY());
@@ -104,9 +104,9 @@ public class UI extends Application {
         table.setEditable(false);
         table.setOnMouseClicked(mouseEvent -> {
             table.getSelectionModel().getSelectedCells().forEach(cell -> {
-                if (cell != null && cell.getTableColumn().getText().equals("Customer Name")) {
+                if (cell != null && cell.getTableColumn() != null && cell.getTableColumn().getText().equals("Customer Name")) {
                     System.out.println("correct column");
-                    
+
                     Customer customer = table.getSelectionModel().getSelectedItem().getCustomer();
                     try {
                         buildOrdersMadeByCustomerWindow(customer).show();
@@ -385,28 +385,30 @@ public class UI extends Application {
 
     /**
      * builds the menubar and returns it.
-     * 
+     * @param refTable table which Menu is build based on 
+     * (mainly needed for expand and collapse features)
+     *
      * @return menubar
      */
-    private MenuBar buildMenuBar() {
+    private MenuBar buildMenuBar(TableView<Row> refTable) {
         MenuBar menuBar = new MenuBar();
 
         // File menu
         Menu fileMenu = new Menu("File");
-        MenuItem openMenuItem = new MenuItem("Preferences");
+        MenuItem preferencesMenuItem = new MenuItem("Preferences");
         MenuItem exitMenuItem = new MenuItem("Exit");
         exitMenuItem.setOnAction(event -> {
             Platform.exit();
         });
 
-        fileMenu.getItems().addAll(openMenuItem, exitMenuItem);
+        fileMenu.getItems().addAll(preferencesMenuItem, exitMenuItem);
 
         // View menu
         Menu viewMenu = new Menu("View");
         Menu expandMenuItem = new Menu("Expand");
         Menu collapseMenuItem = new Menu("Collapse");
 
-        table.getColumns().stream().skip(1).forEach(column -> {
+        refTable.getColumns().stream().skip(1).forEach(column -> {
             MenuItem expandItem = new MenuItem(getColumnTitle(column));
             expandItem.setOnAction(event -> {
                 System.out.println(expandItem.getText() + " was clicked(expand)");
@@ -423,11 +425,11 @@ public class UI extends Application {
 
         MenuItem expandAllMenuItem = new MenuItem("Expand all");
         expandAllMenuItem.setOnAction(event -> {
-            table.getColumns().stream().skip(1).forEach(ColumnUtils::expandColumn);
+            refTable.getColumns().stream().skip(1).forEach(ColumnUtils::expandColumn);
         });
         MenuItem collapseAllMenuItem = new MenuItem("Collapse all");
         collapseAllMenuItem.setOnAction(event -> {
-            table.getColumns().stream().skip(1).forEach(ColumnUtils::collapseColumn);
+            refTable.getColumns().stream().skip(1).forEach(ColumnUtils::collapseColumn);
         });
         viewMenu.getItems().addAll(expandMenuItem, collapseMenuItem, expandAllMenuItem, collapseAllMenuItem);
 
@@ -492,20 +494,22 @@ public class UI extends Application {
         Stage primaryStage = new Stage();
 
         TableView<Row> table = buildMainTable();
-        table.getColumns().get(2).setVisible(false);
-        FilteredList<Row> tableData = new FilteredList<Row>(beans, row -> row.getCustomer().getId().equals(customer.getId()));
+        table.getColumns().remove(2);
+        FilteredList<Row> tableData = new FilteredList<Row>(beans,
+                row -> row.getCustomer().getId().equals(customer.getId()));
         table.setItems(FXCollections.observableList(tableData));
-
-        String summaryLabel = "Summary of all orders made by customer " + customer.getName();
 
         final VBox centralVbox = new VBox();
         centralVbox.setSpacing(5);
         centralVbox.setPadding(new Insets(10, 0, 0, 10));
-        centralVbox.getChildren().addAll(new Label(summaryLabel), table);
+        centralVbox.getChildren().addAll(new Label("Customer info:"),
+                buildCustomertable(customer),
+                new Label("All orders made by this customer:"),
+                table);
 
         BorderPane root = new BorderPane();
         root.setCenter(centralVbox);
-        root.setTop(buildMenuBar());
+        root.setTop(buildMenuBar(table));
 
         Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
         primaryStage.setX(bounds.getMinX());
@@ -515,6 +519,52 @@ public class UI extends Application {
         primaryStage.setTitle("Summary of orders");
         primaryStage.setScene(new Scene(root));
         return primaryStage;
+    }
+
+    @SuppressWarnings("unchecked")
+    private TableView<Customer> buildCustomertable(Customer customer) {
+        var tableData = FXCollections.observableList(List.of(customer));
+        TableView<Customer> table = new TableView<Customer>(tableData);
+
+        TableColumn<Customer, String> customerIdCol = new TableColumn<>("Customer ID");
+        customerIdCol.setCellValueFactory(cellData -> new SimpleStringProperty(
+            customer.getId()));
+
+        TableColumn<Customer, String> customerNameCol = new TableColumn<>("Customer Name");
+        customerNameCol.setCellValueFactory(cellData -> new SimpleStringProperty(
+            customer.getName()));
+
+        TableColumn<Customer, String> segmentCol = new TableColumn<>("Segment");
+        segmentCol.setCellValueFactory(cellData -> new SimpleStringProperty(
+            customer.getSegment()));
+
+        TableColumn<Customer, String> countryCol = new TableColumn<>("Country");
+        countryCol.setCellValueFactory(cellData -> new SimpleStringProperty(
+            customer.getCountry()));
+
+        TableColumn<Customer, String> cityCol = new TableColumn<>("City");
+        cityCol.setCellValueFactory(cellData -> new SimpleStringProperty(
+            customer.getCity()));
+
+        TableColumn<Customer, String> stateCol = new TableColumn<>("State");
+        stateCol.setCellValueFactory(cellData -> new SimpleStringProperty(
+            customer.getState()));
+
+        TableColumn<Customer, String> postalCodeCol = new TableColumn<>("Postal Code");
+        postalCodeCol.setCellValueFactory(cellData -> new SimpleStringProperty(
+            Integer.toString(customer.getPostalCode())));
+
+        TableColumn<Customer, String> regionCol = new TableColumn<>("Region");
+        regionCol.setCellValueFactory(cellData -> new SimpleStringProperty(
+            customer.getRegion()));
+
+        table.getColumns().setAll(customerIdCol, customerNameCol,
+                segmentCol, countryCol, cityCol, stateCol,
+                postalCodeCol, regionCol);
+        table.setFixedCellSize(25);
+        table.setPrefHeight(50);
+
+        return table;
     }
 
 }
