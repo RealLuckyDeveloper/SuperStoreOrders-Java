@@ -1,6 +1,5 @@
 package org.statistics;
 
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +8,8 @@ import org.example.entities.Customer;
 import org.example.entities.Row;
 
 public class Analysis {
+    private Analysis() {
+    }
     public static double averageSalesPerOrder(List<Row> data) {
         HashMap<String, Double> listOfOrders = new HashMap<String, Double>();
         data.stream().forEach(row -> {

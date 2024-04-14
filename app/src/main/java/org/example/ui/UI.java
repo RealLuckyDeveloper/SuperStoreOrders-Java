@@ -411,6 +411,14 @@ public class UI extends Application {
         Menu expandMenuItem = new Menu("Expand");
         Menu collapseMenuItem = new Menu("Collapse");
 
+        Menu analysisMenu = new Menu("Analysis");
+        MenuItem checkAnalysis = new MenuItem("Check analysis");
+        checkAnalysis.setOnAction(event -> {
+            AnalysisWindow window = new AnalysisWindow(beans);
+            window.showWindow();
+        });
+        analysisMenu.getItems().addAll(checkAnalysis);
+
         refTable.getColumns().stream().skip(1).forEach(column -> {
             MenuItem expandItem = new MenuItem(getColumnTitle(column));
             expandItem.setOnAction(event -> {
@@ -437,7 +445,7 @@ public class UI extends Application {
         viewMenu.getItems().addAll(expandMenuItem, collapseMenuItem, expandAllMenuItem, collapseAllMenuItem);
 
         // Add menus to the menu bar
-        menuBar.getMenus().addAll(fileMenu, viewMenu);
+        menuBar.getMenus().addAll(fileMenu, viewMenu, analysisMenu);
         return menuBar;
     }
 
@@ -456,8 +464,6 @@ public class UI extends Application {
         HBox searchBox = new HBox(10);
         searchBox.getChildren().addAll(searchLabel, searchField);
         searchBox.setAlignment(Pos.CENTER);
-
-        // HBox.setHgrow(searchField, Priority.ALWAYS);
 
         searchBarContainer.getChildren().add(searchBox);
 
@@ -506,7 +512,7 @@ public class UI extends Application {
         centralVbox.setSpacing(5);
         centralVbox.setPadding(new Insets(10, 0, 0, 10));
         centralVbox.getChildren().addAll(new Label("Customer info:"),
-                buildCustomertable(customer),
+                buildCustomerTable(customer),
                 new Label("All orders made by this customer:"),
                 table);
 
@@ -525,7 +531,7 @@ public class UI extends Application {
     }
 
     @SuppressWarnings("unchecked")
-    private TableView<Customer> buildCustomertable(Customer customer) {
+    public static TableView<Customer> buildCustomerTable(Customer customer) {
         var tableData = FXCollections.observableList(List.of(customer));
         TableView<Customer> table = new TableView<Customer>(tableData);
 
