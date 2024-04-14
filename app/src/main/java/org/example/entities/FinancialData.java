@@ -5,11 +5,13 @@ import org.example.util.DoubleConverter;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvCustomBindByName;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class FinancialData {
     @CsvBindByName(column = "Sales")
     @CsvCustomBindByName(converter = DoubleConverter.class)

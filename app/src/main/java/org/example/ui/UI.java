@@ -35,6 +35,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -63,6 +64,7 @@ public class UI extends Application {
         final VBox centralVbox = new VBox();
         centralVbox.setSpacing(5);
         centralVbox.setPadding(new Insets(10, 0, 0, 10));
+        VBox.setVgrow(table, Priority.ALWAYS);
         centralVbox.getChildren().addAll(buildSearchBar(), table);
 
         root.setCenter(centralVbox);
@@ -102,6 +104,7 @@ public class UI extends Application {
 
         TableView<Row> table = new TableView<Row>(beans);
         table.setEditable(false);
+        table.setMaxHeight(Double.MAX_VALUE);
         table.setOnMouseClicked(mouseEvent -> {
             table.getSelectionModel().getSelectedCells().forEach(cell -> {
                 if (cell != null && cell.getTableColumn() != null && cell.getTableColumn().getText().equals("Customer Name")) {
