@@ -67,3 +67,7 @@ If you encounter any issues or errors during setup or execution, refer to the ap
 | Bonus: GUI: User is able to view graphical charts from the data                                                                                                                                                                                                                                                                                                                                                                   | 0         | 30        |
 | **SUM**                                                                                                                                                                                                                                                                                                                                                                                                                           | **Count sum of your points** | **290 + 30p** |
 
+
+
+## Screencast
+https://1drv.ms/v/s!AkaoRZQfzRcMjByMpRQIQAydzYeT
