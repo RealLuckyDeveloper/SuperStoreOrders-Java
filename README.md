@@ -27,7 +27,7 @@ This guide explains how to set up and run the `app.jar` with the required data.
    - Use the following command to launch the application:
    
      ```bash
-     java -jar app.jar "<data_directory>/path/to/file1" "<data_directory>/path/to/file2"
+     java -jar app.jar "<data_directory>/path/to/SuperStoreOrders.csv" "<data_directory>/path/to/SuperStoreReturns.csv"
      ```
 
      Replace `<data_directory>/path/to/file1` and `<data_directory>/path/to/file2` with the actual paths to your input files within the extracted `data.zip`.
