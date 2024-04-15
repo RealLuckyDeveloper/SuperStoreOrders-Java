@@ -32,14 +32,16 @@ public final class App {
     public static void main(final String[] args) throws Exception {
         List<Row> beans = null;
         List<String> returnIDs = null;
+        System.out.println(args[0]);
+        System.out.println(args[1]);
         try {
-            beans = new CsvToBeanBuilder<Row>(new FileReader("temp.csv"))
+            beans = new CsvToBeanBuilder<Row>(new FileReader(args[0]))
                     .withSeparator(';')
                     .withType(Row.class)
                     .build()
                     .parse();
 
-            CSVReader reader = new CSVReaderBuilder(new FileReader("SuperStoreReturns.csv")).build();
+            CSVReader reader = new CSVReaderBuilder(new FileReader(args[1])).build();
             returnIDs = reader.readAll()
                     .stream()
                     .skip(1) //discard column titles and remove "Yes;" at the start
