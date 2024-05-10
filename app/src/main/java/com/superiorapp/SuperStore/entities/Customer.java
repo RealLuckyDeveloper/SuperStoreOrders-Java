@@ -1,4 +1,4 @@
-package org.example.entities;
+package com.superiorapp.SuperStore.entities;
 
 import com.opencsv.bean.CsvBindByName;
 

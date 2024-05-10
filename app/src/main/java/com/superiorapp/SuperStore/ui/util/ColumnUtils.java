@@ -1,6 +1,6 @@
-package org.example.ui.util;
+package com.superiorapp.SuperStore.ui.util;
 
-import org.example.entities.Row;
+import com.superiorapp.SuperStore.entities.Row;
 
 import javafx.scene.control.TableColumn;
 import javafx.scene.layout.StackPane;

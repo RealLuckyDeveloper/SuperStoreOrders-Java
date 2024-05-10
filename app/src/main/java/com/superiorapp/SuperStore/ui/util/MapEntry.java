@@ -1,4 +1,4 @@
-package org.example.ui.util;
+package com.superiorapp.SuperStore.ui.util;
 
 public class MapEntry {
     private Object key;

@@ -1,13 +1,13 @@
-package org.example.ui;
+package com.superiorapp.SuperStore.ui;
 
 import java.util.List;
 
-import org.example.entities.Customer;
-import org.example.entities.FinancialData;
-import org.example.entities.Order;
-import org.example.entities.Product;
-import org.example.entities.Row;
-import org.example.ui.util.ColumnUtils;
+import com.superiorapp.SuperStore.entities.Customer;
+import com.superiorapp.SuperStore.entities.FinancialData;
+import com.superiorapp.SuperStore.entities.Order;
+import com.superiorapp.SuperStore.entities.Product;
+import com.superiorapp.SuperStore.entities.Row;
+import com.superiorapp.SuperStore.ui.util.ColumnUtils;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -42,7 +42,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-import static org.example.ui.util.ColumnUtils.*;
+import static com.superiorapp.SuperStore.ui.util.ColumnUtils.*;
 
 /**
  * class representing User Interface.
@@ -108,8 +108,6 @@ public class UI extends Application {
         table.setOnMouseClicked(mouseEvent -> {
             table.getSelectionModel().getSelectedCells().forEach(cell -> {
                 if (cell != null && cell.getTableColumn() != null && cell.getTableColumn().getText().equals("Customer Name")) {
-                    System.out.println("correct column");
-
                     Customer customer = table.getSelectionModel().getSelectedItem().getCustomer();
                     try {
                         buildOrdersMadeByCustomerWindow(customer).show();

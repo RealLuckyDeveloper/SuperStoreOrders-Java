@@ -1,6 +1,6 @@
-package org.example.entities;
+package com.superiorapp.SuperStore.entities;
 
-import org.example.util.DoubleConverter;
+import com.superiorapp.SuperStore.util.DoubleConverter;
 
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvCustomBindByName;
