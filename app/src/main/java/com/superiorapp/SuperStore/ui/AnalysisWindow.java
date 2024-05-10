@@ -1,4 +1,4 @@
-package org.example.ui;
+package com.superiorapp.SuperStore.ui;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,10 +19,10 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-import org.example.entities.Customer;
-import org.example.entities.Row;
-import org.example.ui.util.MapEntry;
-import org.statistics.Analysis;
+import com.superiorapp.SuperStore.entities.Customer;
+import com.superiorapp.SuperStore.entities.Row;
+import com.superiorapp.SuperStore.ui.util.MapEntry;
+import com.superiorapp.SuperStore.statistics.Analysis;
 
 import java.text.DecimalFormat;
 import java.util.List;

@@ -48,12 +48,12 @@ javafx {
 
 application {
     // Define the main class for the application.
-    mainClass = "org.example.App"
+    mainClass = "com.superiorapp.SuperStore.App"
 }
 
 tasks.jar {
     manifest {
-        attributes["Main-Class"] = "org.example.App"
+        attributes["Main-Class"] = "com.superiorapp.SuperStore.App"
     }
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from(configurations.runtimeClasspath.get().filter { it.name.endsWith(".jar") }.map { zipTree(it) })

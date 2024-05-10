@@ -1,11 +1,11 @@
-package org.statistics;
+package com.superiorapp.SuperStore.statistics;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.example.entities.Customer;
-import org.example.entities.Row;
+import com.superiorapp.SuperStore.entities.Customer;
+import com.superiorapp.SuperStore.entities.Row;
 
 public class Analysis {
     private Analysis() {

@@ -1,12 +1,12 @@
-package org.example;
+package com.superiorapp.SuperStore;
 
-import org.example.entities.Customer;
-import org.example.entities.FinancialData;
-import org.example.entities.Order;
-import org.example.entities.Product;
-import org.example.entities.Row;
+import com.superiorapp.SuperStore.entities.Customer;
+import com.superiorapp.SuperStore.entities.FinancialData;
+import com.superiorapp.SuperStore.entities.Order;
+import com.superiorapp.SuperStore.entities.Product;
+import com.superiorapp.SuperStore.entities.Row;
 import org.junit.jupiter.api.Test;
-import org.statistics.Analysis;
+import com.superiorapp.SuperStore.statistics.Analysis;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
