@@ -3,40 +3,39 @@ package com.superiorapp.SuperStore.statistics;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.superiorapp.SuperStore.entities.Customer;
 import com.superiorapp.SuperStore.entities.Row;
 
-public class Analysis {
+public final class Analysis {
     private Analysis() {
     }
-    public static double averageSalesPerOrder(List<Row> data) {
-        HashMap<String, Double> listOfOrders = new HashMap<String, Double>();
-        data.stream().forEach(row -> {
-            String orderId = row.getOrder().getId();
-            double salesAmount = row.getData().getSales();
-            // checks if hashmap already has this order id in it
-            if (listOfOrders.get(orderId) == null) {
-                listOfOrders.put(orderId, salesAmount);
-            } else {
-                /* if this orderId was already in the table, add the sales value
-                in the current row to the total sales from the specific order.
-                This is needed for the cases where same order is in multiple
-                rows and contains different products and sales amount.
-                For more information refer to the original data
-                in the csv file */
-                double totalSalesAmount = listOfOrders.get(orderId) + salesAmount;
-                listOfOrders.put(orderId, totalSalesAmount);
-            }
-        });
-        double total = 0.0;
-        for (double value : listOfOrders.values()) {
-            total += value;
-        }
-        return total / listOfOrders.size();
+
+    /**
+     * calculates average money spent per order.
+     *
+     * @param data List of Rows with all data
+     * @return average oney spent per order
+     */
+    public static double averageSalesPerOrder(final List<Row> data) {
+        Map<String, Double> orderSales = data.stream()
+                .collect(Collectors.groupingBy(row -> row.getOrder().getId(),
+                        Collectors.summingDouble(row -> row.getData().getSales())));
+        return orderSales.values().stream()
+                .mapToDouble(Double::doubleValue)
+                .average()
+                .orElse(0.0);
     }
 
-    public static Map<Customer, Double> findBestCustomer(List<Row> data) {
+    /**
+     * finds the best customer.
+     * best customer meaning customer who spent most money on the orders
+     *
+     * @param data List of Rows with all data
+     * @return best customer and amount of money they spent
+     */
+    public static Map<Customer, Double> findBestCustomer(final List<Row> data) {
         Map<Customer, Double> customerTotalSales = new HashMap<>();
 
         // Calculate total sales for each customer
@@ -60,14 +59,26 @@ public class Analysis {
         return new HashMap<>(); // Return an empty map if no best customer found (unlikely with real data)
     }
 
-    public static Map<String, Integer> calculateNumberOfCustomersByAttribute(List<Row> data, String attribute) {
+    /**
+     * Calculates the number of customers by a specified attribute from the provided
+     * data.
+     *
+     * @param data      List of Rows with all data
+     * @param attribute the attribute by which to categorize customers (currently
+     *                  only "state" or "segment" is supported)
+     * @return a map containing the count of customers for each distinct attribute
+     *         value
+     * @throws IllegalArgumentException if the given attribute is not supported
+     */
+    public static Map<String, Integer> calculateNumberOfCustomersByAttribute(final List<Row> data,
+            final String attribute) {
         Map<Customer, String> customerAndAttribute = new HashMap<>();
-        
+
         // Populate customerAndAttribute with customer-attribute mappings
         data.forEach(row -> {
             Customer customer = row.getCustomer();
             String attributeValue = null;
-            
+
             switch (attribute) {
                 case "state":
                     attributeValue = customer.getState();
@@ -75,26 +86,35 @@ public class Analysis {
                 case "segment":
                     attributeValue = customer.getSegment();
                     break;
-                
+
                 default:
-                    throw new RuntimeException("Given incorrect attribute for function calculateNumberOfCustomersByAttribute(List<Row> data, String attribute): " + attribute);
+                    throw new IllegalArgumentException(
+                            "Given incorrect attribute for function "
+                                    + "calculateNumberOfCustomersByAttribute(List<Row> data, String attribute): "
+                                    + attribute);
             }
-            
+
             if (attributeValue != null) {
                 customerAndAttribute.put(customer, attributeValue);
             }
         });
-        
+
         // Count occurrences of each attribute value
         Map<String, Integer> attributeCounts = new HashMap<>();
         customerAndAttribute.values().forEach(value -> {
             attributeCounts.merge(value, 1, Integer::sum);
         });
-        
+
         return attributeCounts;
     }
 
-    public static Map<Integer, Double> calculateTotalSalesPerYear(List<Row> data) {
+    /**
+     * calculates total sales per year.
+     *
+     * @param data List of Rows with all data
+     * @return Map with stats ready to be displayed
+     */
+    public static Map<Integer, Double> calculateTotalSalesPerYear(final List<Row> data) {
         Map<Integer, Double> totalSalesPerYear = new HashMap<>();
         data.forEach(row -> {
             int year = row.getOrder().getOrderDate().getYear();
@@ -104,13 +124,19 @@ public class Analysis {
         return totalSalesPerYear;
     }
 
-    public static Map<String, Double> calculateTotalSalesPerRegion(List<Row> data) {
-        Map<String, Double> totalSalesPerYear = new HashMap<>();
+    /**
+     * calculates total sales per region.
+     *
+     * @param data List of Rows with all data
+     * @return Map with stats ready to be displayed
+     */
+    public static Map<String, Double> calculateTotalSalesPerRegion(final List<Row> data) {
+        Map<String, Double> totalSalesPerRegion = new HashMap<>();
         data.forEach(row -> {
             String region = row.getCustomer().getRegion();
             double sales = row.getData().getSales();
-            totalSalesPerYear.merge(region, sales, Double::sum);
+            totalSalesPerRegion.merge(region, sales, Double::sum);
         });
-        return totalSalesPerYear;
+        return totalSalesPerRegion;
     }
 }

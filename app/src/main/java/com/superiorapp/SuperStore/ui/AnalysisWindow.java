@@ -21,8 +21,8 @@ import javafx.stage.Stage;
 
 import com.superiorapp.SuperStore.entities.Customer;
 import com.superiorapp.SuperStore.entities.Row;
-import com.superiorapp.SuperStore.ui.util.MapEntry;
 import com.superiorapp.SuperStore.statistics.Analysis;
+import com.superiorapp.SuperStore.ui.util.MapEntry;
 
 import java.text.DecimalFormat;
 import java.util.List;
@@ -31,13 +31,23 @@ import java.util.Map;
 public class AnalysisWindow {
     private final ObservableList<Row> beans;
     private static final int DEFAULT_SPACING = 10;
-    static DecimalFormat df = new DecimalFormat("#.##");
+    static final DecimalFormat DF = new DecimalFormat("#.##");
 
-    public AnalysisWindow(List<Row> data) {
+    /**
+     * public constructor.
+     * initializes data needed to make analysis
+     * @param data
+     */
+    public AnalysisWindow(final List<Row> data) {
         this.beans = FXCollections.observableList(data);
     }
 
+    /**
+     * builds and shows the Analysis window.
+     */
     public void showWindow() {
+        final int numOfRows = 4;
+        final int maxTableWidth = 300;
         Stage primaryStage = new Stage();
         primaryStage.setTitle("Analysis Window");
 
@@ -50,7 +60,7 @@ public class AnalysisWindow {
         BorderPane root = new BorderPane();
 
         final VBox centralVbox = new VBox();
-        centralVbox.setSpacing(5);
+        centralVbox.setSpacing(DEFAULT_SPACING);
         centralVbox.setPadding(new Insets(DEFAULT_SPACING, 0, 0, DEFAULT_SPACING));
         centralVbox.setAlignment(Pos.CENTER);
 
@@ -61,7 +71,7 @@ public class AnalysisWindow {
         averageSalesPerOrderContainer.setAlignment(Pos.CENTER);
 
         Label averageSalesPerOrderText = new Label("Average sales per order: ");
-        Label averageSalesPerOrderValue = new Label(df.format(Analysis.averageSalesPerOrder(beans)));
+        Label averageSalesPerOrderValue = new Label(DF.format(Analysis.averageSalesPerOrder(beans)));
         averageSalesPerOrderValue.setFont(boldFont);
         averageSalesPerOrderContainer.getChildren().setAll(averageSalesPerOrderText, averageSalesPerOrderValue);
 
@@ -69,7 +79,7 @@ public class AnalysisWindow {
         Map<Customer, Double> bestCustomer = Analysis.findBestCustomer(beans);
         bestCustomerText
                 .setText("Highest amount of sales for single customer is: "
-                        + df.format(bestCustomer.values().iterator().next())
+                        + DF.format(bestCustomer.values().iterator().next())
                         + " which belongs to Customer:");
         TableView<Customer> bestCustomerTable = UI.buildCustomerTable(bestCustomer.keySet().iterator().next());
         bestCustomerText.setFont(boldFont);
@@ -79,23 +89,23 @@ public class AnalysisWindow {
                 "state");
 
         TableView<MapEntry> numberOfCustomersPerStateTable = mapToTable(numberOfCustomersPerStateMap, "State");
-        numberOfCustomersPerStateTable.setMaxWidth(300); 
+        numberOfCustomersPerStateTable.setMaxWidth(maxTableWidth);
 
         Label numberOfCustomersPerSegmentText = new Label("Number of customers per segment: ");
         Map<String, Integer> numberOfCustomersPerSegmentMap = Analysis.calculateNumberOfCustomersByAttribute(beans,
                 "segment");
         TableView<MapEntry> numberOfCustomersPerSegmentTable = mapToTable(numberOfCustomersPerSegmentMap, "Segment");
-        setNumOfRows(numberOfCustomersPerSegmentTable, 4);
+        setNumOfRows(numberOfCustomersPerSegmentTable, numOfRows);
 
         Label totalSalesPerYearText = new Label("Total sales per year: ");
         Map<Integer, Double> totalSalesPerYearMap = Analysis.calculateTotalSalesPerYear(beans);
         TableView<MapEntry> totalSalesPerYearTable = mapToTable(totalSalesPerYearMap, "Year");
-        setNumOfRows(totalSalesPerYearTable, 4);
+        setNumOfRows(totalSalesPerYearTable, numOfRows);
 
         Label totalSalesPerRegionText = new Label("Total sales per region: ");
         Map<String, Double> totalSalesPerRegionMap = Analysis.calculateTotalSalesPerRegion(beans);
         TableView<MapEntry> totalSalesPerRegionTable = mapToTable(totalSalesPerRegionMap, "Region");
-        setNumOfRows(totalSalesPerRegionTable, 4);
+        setNumOfRows(totalSalesPerRegionTable, numOfRows);
 
         centralVbox.getChildren().setAll(averageSalesPerOrderContainer, bestCustomerText,
                 bestCustomerTable, numberOfCustomersPerStateText, numberOfCustomersPerStateTable,
@@ -111,7 +121,7 @@ public class AnalysisWindow {
         primaryStage.show();
     }
 
-    private static TableView<MapEntry> mapToTable(Map<?, ?> data, String attribute) {
+    private static TableView<MapEntry> mapToTable(final Map<?, ?> data, final String attribute) {
         TableView<MapEntry> tableView = new TableView<>();
         TableColumn<MapEntry, Object> keyColumn = new TableColumn<>(attribute);
         TableColumn<MapEntry, Object> valueColumn = new TableColumn<>("Value");
@@ -122,17 +132,19 @@ public class AnalysisWindow {
         tableView.getColumns().addAll(keyColumn, valueColumn);
 
         ObservableList<MapEntry> listData = FXCollections.observableArrayList();
-        data.forEach((key, value) -> listData.add(new MapEntry(key, df.format(value))));
+        data.forEach((key, value) -> listData.add(new MapEntry(key, DF.format(value))));
 
         tableView.setItems(listData);
 
         return tableView;
     }
 
-    private TableView<MapEntry> setNumOfRows(TableView<MapEntry> table, int number) {
-        table.setFixedCellSize(25);
-        table.setPrefHeight(25 * (number + 1));
-        table.setMaxWidth(300); 
+    private TableView<MapEntry> setNumOfRows(final TableView<MapEntry> table, final int number) {
+        final int tableCellSize = 25;
+        final int maxWidth = 300;
+        table.setFixedCellSize(tableCellSize);
+        table.setPrefHeight(tableCellSize * (number + 1));
+        table.setMaxWidth(maxWidth);
         return table;
     }
 }

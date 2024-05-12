@@ -31,14 +31,15 @@ public final class App {
 
     /**
      * main class of the application.
-     * 
+     *
      * @param args args.
      */
     public static void main(final String[] args) throws Exception {
+        final int discardedCharCount = 4;
         if (args.length == 0) {
             System.out.println("Error: No arguments provided.");
-            System.out.println(
-                    "For instructions on how to run the application please check https://github.com/RealLuckyDeveloper/SuperStoreOrders-Java/blob/main/README.md");
+            System.out.println("For instructions on how to run the application please check "
+                    + "https://github.com/RealLuckyDeveloper/SuperStoreOrders-Java/blob/main/README.md");
             System.exit(1);
         }
         List<Row> beans = null;
@@ -54,7 +55,7 @@ public final class App {
             returnIDs = reader.readAll()
                     .stream()
                     .skip(1) // discard column titles and remove "Yes;" at the start
-                    .map(array -> array[0].substring(4))
+                    .map(array -> array[0].substring(discardedCharCount))
                     .collect(Collectors.toList());
         } catch (Exception e) {
             e.printStackTrace();

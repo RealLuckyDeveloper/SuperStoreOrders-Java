@@ -8,7 +8,7 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
-    // checkstyle
+    checkstyle
     id("io.freefair.lombok") version "8.6"
     id("org.openjfx.javafxplugin") version "0.1.0"
 }
@@ -18,11 +18,11 @@ repositories {
     mavenCentral()
 }
 
-// checkstyle {
-//     configFile = rootProject.file("./config/checkstyle.xml")
-//     isIgnoreFailures = false
-//     sourceSets = setOf(project.sourceSets.getByName("main")) // Ensure only the main source set is checked, excluding tests
-// }
+checkstyle {
+    configFile = file("${rootDir}/config/checkstyle.xml")
+    isIgnoreFailures = false
+    sourceSets = setOf(project.sourceSets.getByName("main")) // Ensure only the main source set is checked, excluding tests
+}
 
 dependencies {
     // Use JUnit Jupiter for testing.
@@ -33,6 +33,8 @@ dependencies {
     // This dependency is used by the application.
     implementation(libs.guava)
     implementation("com.opencsv:opencsv:5.9")
+    implementation("org.apache.logging.log4j:log4j-api:2.23.1")
+    implementation("org.apache.logging.log4j:log4j-core:2.23.1")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

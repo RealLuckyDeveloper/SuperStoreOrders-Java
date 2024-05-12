@@ -9,6 +9,9 @@ import com.superiorapp.SuperStore.entities.Product;
 import com.superiorapp.SuperStore.entities.Row;
 import com.superiorapp.SuperStore.ui.util.ColumnUtils;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -42,12 +45,17 @@ import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-import static com.superiorapp.SuperStore.ui.util.ColumnUtils.*;
+import static com.superiorapp.SuperStore.ui.util.ColumnUtils.collapseColumn;
+import static com.superiorapp.SuperStore.ui.util.ColumnUtils.expandColumn;
+import static com.superiorapp.SuperStore.ui.util.ColumnUtils.getColumnTitle;
+import static com.superiorapp.SuperStore.ui.util.ColumnUtils.toggleColumnExpansion;
 
 /**
  * class representing User Interface.
  */
 public class UI extends Application {
+    private static final Logger LOG = LogManager.getLogger(UI.class);
+
     private static ObservableList<Row> beans;
     // for search function
     // private static ObservableList<Row> filteredList;
@@ -59,11 +67,13 @@ public class UI extends Application {
      */
     @Override
     public void start(final Stage primaryStage) throws Exception {
+        final int topBottomPadding = 10;
+        final int centralVboxSpacing = 5;
         BorderPane root = new BorderPane();
 
         final VBox centralVbox = new VBox();
-        centralVbox.setSpacing(5);
-        centralVbox.setPadding(new Insets(10, 0, 0, 10));
+        centralVbox.setSpacing(centralVboxSpacing);
+        centralVbox.setPadding(new Insets(topBottomPadding, 0, 0, topBottomPadding));
         VBox.setVgrow(table, Priority.ALWAYS);
         centralVbox.getChildren().addAll(buildSearchBar(), table);
 
@@ -83,7 +93,7 @@ public class UI extends Application {
     /**
      * custom launcher.
      * launchs UI and sets data from csv files
-     * 
+     *
      * @param data           {@code List<Row>} data parsed from csv
      * @param returnedOrders list of returned orders
      */
@@ -96,7 +106,7 @@ public class UI extends Application {
 
     /**
      * builds main table and returns it.
-     * 
+     *
      * @return Tableview main table
      */
     @SuppressWarnings("unchecked")
@@ -107,13 +117,16 @@ public class UI extends Application {
         table.setMaxHeight(Double.MAX_VALUE);
         table.setOnMouseClicked(mouseEvent -> {
             table.getSelectionModel().getSelectedCells().forEach(cell -> {
-                if (cell != null && cell.getTableColumn() != null && cell.getTableColumn().getText().equals("Customer Name")) {
+                if (cell != null && cell.getTableColumn() != null
+                        && cell.getTableColumn().getText().equals("Customer Name")) {
                     Customer customer = table.getSelectionModel().getSelectedItem().getCustomer();
                     try {
                         buildOrdersMadeByCustomerWindow(customer).show();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                } else {
+                    LOG.info("TablePosition is null!");
                 }
             });
         });
@@ -123,7 +136,14 @@ public class UI extends Application {
                 cellData.getValue()
                         .getRowId())
                 .asObject());
-        // ----------------------- order column --------------------------------
+
+        table.getColumns().addAll(rowIdCol, buildOrderColumn(), buildCustomerColumn(),
+                buildProductColumn(), buildFinancialDataColumn());
+
+        return table;
+    }
+
+    private TableColumn<Row, Order> buildOrderColumn() {
         TableColumn<Row, Order> orderCol = new TableColumn<>();
 
         TableColumn<Row, String> orderIdCol = new TableColumn<>("Order ID");
@@ -131,7 +151,7 @@ public class UI extends Application {
         orderIdCol.setCellFactory(column -> {
             return new TableCell<Row, String>() {
                 @Override
-                protected void updateItem(String orderId, boolean empty) {
+                protected void updateItem(final String orderId, final boolean empty) {
                     super.updateItem(orderId, empty);
 
                     if (empty || orderId == null) {
@@ -188,9 +208,10 @@ public class UI extends Application {
         });
         orderCol.setGraphic(orderText);
 
-        // ==================order column end===================================
-        // ------------------customer column start------------------------------
+        return orderCol;
+    }
 
+    private TableColumn<Row, Customer> buildCustomerColumn() {
         TableColumn<Row, Customer> customerCol = new TableColumn<>();
 
         TableColumn<Row, String> customerIdCol = new TableColumn<>("Customer ID");
@@ -254,10 +275,10 @@ public class UI extends Application {
             }
         });
         customerCol.setGraphic(customerText);
+        return customerCol;
+    }
 
-        // ================customer column end==================================
-        // -------------------product column start------------------------------
-
+    private TableColumn<Row, Product> buildProductColumn() {
         TableColumn<Row, Product> productCol = new TableColumn<>();
 
         TableColumn<Row, String> productIdCol = new TableColumn<>("Product ID");
@@ -295,10 +316,10 @@ public class UI extends Application {
             }
         });
         productCol.setGraphic(productText);
+        return productCol;
+    }
 
-        // ==========================product column end=========================
-        // ------------------financial data column start------------------------
-
+    private TableColumn<Row, FinancialData> buildFinancialDataColumn() {
         TableColumn<Row, FinancialData> financialDataCol = new TableColumn<>();
 
         TableColumn<Row, Double> salesCol = new TableColumn<>("Sales");
@@ -327,7 +348,7 @@ public class UI extends Application {
         profitCol.setCellFactory(column -> {
             return new TableCell<Row, Double>() {
                 @Override
-                protected void updateItem(Double profit, boolean empty) {
+                protected void updateItem(final Double profit, final boolean empty) {
                     super.updateItem(profit, empty);
                     if (empty || profit == null) {
                         setText(null);
@@ -362,13 +383,7 @@ public class UI extends Application {
             }
         });
         financialDataCol.setGraphic(salesText);
-
-        // =================financial data column end===========================
-
-        table.getColumns().addAll(rowIdCol, orderCol, customerCol,
-                productCol, financialDataCol);
-
-        return table;
+        return financialDataCol;
     }
 
     /**
@@ -386,12 +401,12 @@ public class UI extends Application {
 
     /**
      * builds the menubar and returns it.
-     * @param refTable table which Menu is build based on 
+     * @param refTable table which Menu is build based on
      * (mainly needed for expand and collapse features)
      *
      * @return menubar
      */
-    private MenuBar buildMenuBar(TableView<Row> refTable) {
+    private MenuBar buildMenuBar(final TableView<Row> refTable) {
         MenuBar menuBar = new MenuBar();
 
         // File menu
@@ -448,18 +463,21 @@ public class UI extends Application {
     }
 
     private VBox buildSearchBar() {
+        final int searchBoxSpacing = 10;
+        final int searchBoxPrefWidth = 200;
+        final int searchContainerSpacing = 5;
         FilteredList<Row> filteredData = new FilteredList<>(beans, p -> true); // Initially display all data
 
         VBox searchBarContainer = new VBox();
-        searchBarContainer.setSpacing(5);
+        searchBarContainer.setSpacing(searchContainerSpacing);
 
         Label searchLabel = new Label("Search Customer:");
 
         TextField searchField = new TextField();
-        searchField.setPrefWidth(200);
+        searchField.setPrefWidth(searchBoxPrefWidth);
         searchField.setPromptText("Search...");
 
-        HBox searchBox = new HBox(10);
+        HBox searchBox = new HBox(searchBoxSpacing);
         searchBox.getChildren().addAll(searchLabel, searchField);
         searchBox.setAlignment(Pos.CENTER);
 
@@ -497,7 +515,9 @@ public class UI extends Application {
         return searchBarContainer;
     }
 
-    private Stage buildOrdersMadeByCustomerWindow(Customer customer) throws Exception {
+    private Stage buildOrdersMadeByCustomerWindow(final Customer customer) throws Exception {
+        final int topBottomPadding = 10;
+        final int centralVboxSpacing = 5;
         Stage primaryStage = new Stage();
 
         TableView<Row> table = buildMainTable();
@@ -507,8 +527,8 @@ public class UI extends Application {
         table.setItems(FXCollections.observableList(tableData));
 
         final VBox centralVbox = new VBox();
-        centralVbox.setSpacing(5);
-        centralVbox.setPadding(new Insets(10, 0, 0, 10));
+        centralVbox.setSpacing(centralVboxSpacing);
+        centralVbox.setPadding(new Insets(topBottomPadding, 0, 0, topBottomPadding));
         centralVbox.getChildren().addAll(new Label("Customer info:"),
                 buildCustomerTable(customer),
                 new Label("All orders made by this customer:"),
@@ -528,8 +548,14 @@ public class UI extends Application {
         return primaryStage;
     }
 
+    /**
+     * builds customer info table.
+     * @param customer customer whose info is shown
+     * @return table with only 2 rows (column titles and 1 row info) for window that shows Customer Window
+     */
     @SuppressWarnings("unchecked")
-    public static TableView<Customer> buildCustomerTable(Customer customer) {
+    public static TableView<Customer> buildCustomerTable(final Customer customer) {
+        final int fixedCellSize = 25;
         var tableData = FXCollections.observableList(List.of(customer));
         TableView<Customer> table = new TableView<Customer>(tableData);
 
@@ -568,8 +594,8 @@ public class UI extends Application {
         table.getColumns().setAll(customerIdCol, customerNameCol,
                 segmentCol, countryCol, cityCol, stateCol,
                 postalCodeCol, regionCol);
-        table.setFixedCellSize(25);
-        table.setPrefHeight(50);
+        table.setFixedCellSize(fixedCellSize);
+        table.setPrefHeight(fixedCellSize * 2);
 
         return table;
     }

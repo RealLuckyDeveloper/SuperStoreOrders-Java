@@ -6,7 +6,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 
-public class ColumnUtils {
+public final class ColumnUtils {
     private ColumnUtils() {
 
     }
@@ -44,7 +44,7 @@ public class ColumnUtils {
     /**
      * collapses the column.
      * only leaves first sub column visible and makes all others invisible
-     * 
+     *
      * @param column
      */
     public static void collapseColumn(final TableColumn<Row, ?> column) {
@@ -59,7 +59,7 @@ public class ColumnUtils {
 
     /**
      * expands the column if collapsed and collapses if expanded.
-     * 
+     *
      * @param column column to toggle
      */
     public static void toggleColumnExpansion(final TableColumn<Row, ?> column) {
